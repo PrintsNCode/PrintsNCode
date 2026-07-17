@@ -40,7 +40,7 @@ main{flex:1;display:grid;grid-template-columns:410px 1fr;min-height:0}
 .grp.gcol>.gtit{margin-bottom:0}
 .field{margin:10px 0}
 .field>label{display:block;font-size:12px;color:var(--mut);margin-bottom:5px}
-input[type=text],input[type=number],textarea,select{width:100%;background:var(--in);border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:8px 10px;font:inherit}
+input[type=text],input[type=number],input[type=password],textarea,select{width:100%;background:var(--in);border:1px solid var(--line);border-radius:8px;color:var(--tx);padding:8px 10px;font:inherit}
 textarea{min-height:64px;resize:vertical}
 input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
 .rr{display:flex;align-items:center;gap:10px}
@@ -104,6 +104,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
 .preset i{font-style:normal;font-size:11px;color:var(--mut)}
 .big{width:100%;padding:11px;margin-top:8px;font-weight:600}
 .hint{font-size:12px;color:var(--mut);line-height:1.55;margin:10px 0 0}
+.ghstat{margin-top:10px;font-size:12.5px;line-height:1.55;color:var(--mut);word-break:break-word}
+.ghstat.okst{color:#7fd89a}
+.ghstat.errst{color:#ff9c9c}
+.ghstat a{color:var(--acc2)}
+
 .code{font:12px/1.7 ui-monospace,'Cascadia Code',Consolas,monospace;background:var(--in);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--codetx);overflow-x:auto}
 .stage{display:flex;flex-direction:column;align-items:center;overflow:auto;padding:18px;background:radial-gradient(1100px 600px at 60% -10%,var(--stage),var(--bg))}
 .devbar{display:flex;gap:8px;margin-bottom:14px}
@@ -184,7 +189,7 @@ setTimeout(function(){if(!window.__lfOK&&!document.getElementById('errbar')){sho
 </script>
 <script>
 "use strict";
-const KEY='linkforge_v1';
+const KEY='linkstudio_public_v1';
 const uid=()=>Math.random().toString(36).slice(2,9);
 let THEME='auto';try{THEME=localStorage.getItem(KEY+'_theme')||'auto'}catch(e){}
 function applyTheme(t){THEME=t;if(t==='light'||t==='dark'){document.documentElement.setAttribute('data-theme',t)}else{document.documentElement.removeAttribute('data-theme')}try{localStorage.setItem(KEY+'_theme',t)}catch(e){}const bt=document.getElementById('btnTheme');if(bt)bt.textContent=t==='light'?'☀️ Claro':(t==='dark'?'🌙 Oscuro':'🌓 Auto')}
@@ -403,9 +408,8 @@ const DEFAULT={
  profile:{name:'Alex Maker',user:'@alexmaker',bio:'Creador de contenido · Proyectos DIY\nPágina de ejemplo creada con Link Studio',avatar:'',avatarShape:'circle',avatarSize:96,avatarY:0,avatarBorder:0,avatarBorderColor:'#ffffff',verified:false,verifiedColor:'#3b82f6'},
  socials:[
   {id:uid(),icon:'instagram',iconImg:'',url:'https://instagram.com/printsncode'},
-  {id:uid(),icon:'github',iconImg:'',url:'https://github.com/T30dev/link-studio'},
-  {id:uid(),icon:'tiktok',iconImg:'',url:'https://tiktok.com/@usuario'},
-  {id:uid(),icon:'youtube',iconImg:'',url:'https://youtube.com/@micanal'}
+  {id:uid(),icon:'tiktok',iconImg:'',url:'https://tiktok.com/@printsncode'},
+  {id:uid(),icon:'youtube',iconImg:'',url:'https://youtube.com/@printsncode'}
  ],
  socials2:[],
  customIcons:[],
@@ -425,6 +429,7 @@ const DEFAULT={
   fx:{type:'none',opacity:22,color:'',game:'none',btnPos:'left'},
   grid:{cols:3,shape:'rounded',iconSize:26,labels:true},
   btn:{style:'soft',radius:14,bg:'#ffffff',text:'#0f172a',border:'#ffffff',borderW:2,shadow:'#000000',shadowA:35,offset:6,fillOpacity:16,hover:'lift',anim:'none',height:52,gap:14,width:600,iconSize:22,thumbScale:100,thumbShape:'auto',fontSize:16}},
+ publish:{owner:'',repo:'',branch:'main',path:'index.html'},
  footer:{text:'',brandText:'Creado por PrintsNCode',branding:true},
  meta:{title:'',desc:'',favicon:true,filename:'index.html'}
 };
@@ -899,6 +904,7 @@ function buildDiseno(){const c=$('#tab-diseno');c.innerHTML='';
  c.append(gp,gf,gt,gb,gq,gfx,gx)}
 /* ====== PESTAÑA AJUSTES ====== */
 function buildAjustes(){const c=$('#tab-ajustes');c.innerHTML='';
+
  const gm=group('Metadatos de la página (SEO) · opcional',{fold:true,closed:true});
  gm.append(el('p','hint','¿Qué es esto? Estos datos no se ven dentro de la página, pero definen el título de la pestaña del navegador, la descripción que muestran Google y las redes al compartir tu enlace, y el favicon. Si no te interesa, puedes dejarlo como está e ignorar esta sección.'));
  gm.append(textField('Título de la pestaña','meta.title',{ph:S.profile.name||'Mi página'}));
@@ -910,7 +916,29 @@ function buildAjustes(){const c=$('#tab-ajustes');c.innerHTML='';
  const b2=el('button','big','Copiar HTML al portapapeles');b2.addEventListener('click',copyHTML);
  ge.append(b1,b2);
  ge.append(el('p','hint','Todo se guarda solo en este navegador mientras editas (verás «✓ Guardado» arriba). Al exportar se crea además una copia de seguridad interna. El archivo exportado es 100% autónomo: CSS incrustado e imágenes en base64; la única petición externa es la tipografía de Google Fonts (elige «Sistema» para cero dependencias).'));
- const gh=group('Publicar en GitHub Pages');
+ const ghA=group('Publicar en GitHub Pages · automático 🚀');
+ ghA.append(el('p','hint','Publica directamente desde el editor con la API oficial de GitHub: sube (o actualiza) el archivo a tu repositorio y la página se refresca sola. Necesitas un token «fine-grained» de GitHub (Settings → Developer settings → Fine-grained personal access tokens), limitado a ese repositorio, con permiso «Contents: Read and write» (y opcional «Pages: Read and write» para activarlo solo la primera vez).'));
+ ghA.append(textField('Usuario u organización','publish.owner',{ph:'tu-usuario'}));
+ ghA.append(textField('Repositorio','publish.repo',{ph:'mi-links'}));
+ const rr2=el('div','row2');
+ const fbr=el('div');fbr.append(textField('Rama','publish.branch',{ph:'main'}));
+ const fpa=el('div');fpa.append(textField('Archivo','publish.path',{ph:'index.html'}));
+ rr2.append(fbr,fpa);ghA.append(rr2);
+ const ftok=el('div','field','<label>Token de acceso (nunca se incluye en el HTML ni en el JSON exportados)</label>');
+ ghTokenEl=el('input');ghTokenEl.type='password';ghTokenEl.placeholder='github_pat_…';ghTokenEl.autocomplete='off';ghTokenEl.spellcheck=false;
+ try{const tk=localStorage.getItem(KEY+'_ghtoken');if(tk)ghTokenEl.value=tk}catch(e){}
+ ftok.append(ghTokenEl);ghA.append(ftok);
+ const frem=el('label','itg');
+ ghRememberEl=el('input');ghRememberEl.type='checkbox';
+ try{ghRememberEl.checked=!!localStorage.getItem(KEY+'_ghtoken')}catch(e){}
+ frem.append(ghRememberEl,document.createTextNode(' Recordar el token en este navegador (solo en tu equipo personal)'));
+ ghA.append(frem);
+ ghA.append(el('p','hint','El token se guarda únicamente en este navegador y solo viaja a api.github.com. Evita recordarlo en ordenadores compartidos; puedes revocarlo cuando quieras desde GitHub.'));
+ const pb1=el('button','big acc','🚀 Publicar ahora');pb1.addEventListener('click',publishGH);
+ const pb2=el('button','big','Probar conexión');pb2.addEventListener('click',ghTest);
+ ghA.append(pb1,pb2);
+ ghStatusEl=el('div','ghstat');ghA.append(ghStatusEl);
+ const gh=group('Publicación manual (gh CLI) · alternativa',{fold:true,closed:true});
  const cmds='mkdir mi-links && cd mi-links\n# mueve aquí tu index.html descargado\ngh repo create mi-links --public --source=. --push\ngh api repos/{owner}/mi-links/pages -X POST -f "source[branch]=main" -f "source[path]=/"';
  gh.append(el('div','code',esc(cmds).replace(/\n/g,'<br>')));
  gh.append(el('p','hint','Tu página quedará en https://TU-USUARIO.github.io/mi-links · Alternativa: repo → Settings → Pages → Branch: main.'));
@@ -921,7 +949,7 @@ function buildAjustes(){const c=$('#tab-ajustes');c.innerHTML='';
  const j3=el('button','big','Cargar ejemplo (demo de diseño)');j3.addEventListener('click',loadExample);
  const j4=el('button','big danger','Vaciar todo (empezar de cero)');j4.addEventListener('click',emptyAll);
  gd.append(j1,j2,j5,j3,j4);
- c.append(gm,ge,gh,gd)}
+ c.append(gm,ge,ghA,gh,gd)}
 /* ====== GENERADOR DE LA PÁGINA (vista previa = HTML exportado) ====== */
 function buildPage(s){
  const d=s.design,b=d.btn,g=d.grid,p=s.profile;
@@ -1057,7 +1085,8 @@ function buildPage(s){
 ${fav}${fontLink}
 <style>
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar{width:0;height:0;display:none}
 body{margin:0;min-height:100vh;font-family:${f.css};${bodyBg}color:${d.textColor}}
 ${imgL}
 .wrap{max-width:${b.width}px;margin:0 auto;padding:${hasBn?14:56}px 18px 48px;display:flex;flex-direction:column;align-items:center}
@@ -1154,6 +1183,65 @@ ${topScript}
 </body>
 </html>`;
 }
+/* ====== PUBLICACIÓN AUTOMÁTICA EN GITHUB PAGES ====== */
+function b64utf8(s){try{const b=new TextEncoder().encode(s);let bin='';for(let i=0;i<b.length;i+=0x8000)bin+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(bin)}catch(e){return btoa(unescape(encodeURIComponent(s)))}}
+let ghTokenEl=null,ghStatusEl=null,ghRememberEl=null,ghBusy=false;
+function ghSetStatus(msg,kind){if(!ghStatusEl)return;ghStatusEl.textContent='';ghStatusEl.className='ghstat'+(kind?' '+kind:'');if(typeof msg==='string')ghStatusEl.textContent=msg;else ghStatusEl.append(msg)}
+function ghHeaders(tok){return{'Authorization':'Bearer '+tok,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}}
+function ghCfg(){const pb=S.publish||{};return{owner:String(pb.owner||'').trim(),repo:String(pb.repo||'').trim(),branch:String(pb.branch||'main').trim()||'main',path:String(pb.path||'index.html').trim().replace(/^\/+/,'')||'index.html',token:ghTokenEl?ghTokenEl.value.trim():''}}
+async function ghTest(){const c=ghCfg();
+ if(!c.owner||!c.repo||!c.token){ghSetStatus('Rellena usuario, repositorio y token para probar.','errst');return}
+ ghSetStatus('Comprobando acceso…');
+ try{const r=await fetch('https://api.github.com/repos/'+c.owner+'/'+c.repo,{headers:ghHeaders(c.token)});
+  if(r.status===200){const j=await r.json();const pu=j.permissions&&j.permissions.push;ghSetStatus('✓ Conectado a '+(j.full_name||c.owner+'/'+c.repo)+(pu?' · permiso de escritura OK':' · ⚠ el token no tiene permiso de escritura en este repositorio'),pu?'okst':'errst')}
+  else if(r.status===404)ghSetStatus('El repositorio no existe o el token no tiene acceso a él. Créalo en github.com/new o revisa los permisos del token.','errst');
+  else if(r.status===401)ghSetStatus('Token no válido o caducado.','errst');
+  else ghSetStatus('Error '+r.status+' al comprobar la conexión.','errst');
+ }catch(e){ghSetStatus('No se pudo conectar con GitHub. Comprueba tu conexión; si abres el editor como archivo local y tu navegador bloquea la petición, sírvelo con: python -m http.server','errst')}}
+async function publishGH(){if(ghBusy)return;const c=ghCfg();
+ if(!c.owner||!c.repo){ghSetStatus('Indica usuario/organización y repositorio.','errst');return}
+ if(!c.token){ghSetStatus('Falta el token. Se crea en GitHub → Settings → Developer settings → Fine-grained personal access tokens, limitado a tu repositorio y con permiso «Contents: Read and write».','errst');return}
+ ghBusy=true;backup();
+ try{
+  try{if(ghRememberEl&&ghRememberEl.checked)localStorage.setItem(KEY+'_ghtoken',c.token);else localStorage.removeItem(KEY+'_ghtoken')}catch(e){}
+  const html=buildPage(S);
+  const api='https://api.github.com/repos/'+c.owner+'/'+c.repo+'/contents/'+c.path;
+  ghSetStatus('Publicando… (1/2: comprobando el archivo en el repositorio)');
+  let sha=null;
+  let r=await fetch(api+'?ref='+encodeURIComponent(c.branch),{headers:ghHeaders(c.token)});
+  if(r.status===200){try{const j=await r.json();sha=j.sha||null}catch(e){}}
+  else if(r.status===401){ghSetStatus('Token no válido o caducado.','errst');ghBusy=false;return}
+  else if(r.status===403){ghSetStatus('Acceso denegado: el token necesita permiso «Contents: Read and write» sobre ese repositorio.','errst');ghBusy=false;return}
+  ghSetStatus('Publicando… (2/2: subiendo '+c.path+' a la rama '+c.branch+')');
+  const body={message:'Actualizado con Link Studio',content:b64utf8(html),branch:c.branch};
+  if(sha)body.sha=sha;
+  const put=()=>fetch(api,{method:'PUT',headers:Object.assign({'Content-Type':'application/json'},ghHeaders(c.token)),body:JSON.stringify(body)});
+  r=await put();
+  if(r.status===409){const r2=await fetch(api+'?ref='+encodeURIComponent(c.branch),{headers:ghHeaders(c.token)});if(r2.status===200){try{body.sha=(await r2.json()).sha}catch(e){}r=await put()}}
+  if(!r.ok){
+   if(r.status===404)ghSetStatus('El repositorio no existe o el token no tiene acceso. Créalo en github.com/new (público para Pages gratis) y vuelve a intentarlo.','errst');
+   else if(r.status===401)ghSetStatus('Token no válido o caducado.','errst');
+   else if(r.status===403)ghSetStatus('Permiso insuficiente: el token necesita «Contents: Read and write» en ese repositorio.','errst');
+   else if(r.status===422)ghSetStatus('GitHub rechazó la subida (422). Revisa el nombre de la rama «'+c.branch+'» y del archivo.','errst');
+   else ghSetStatus('Error '+r.status+' al subir el archivo.','errst');
+   ghBusy=false;return}
+  let url='https://'+c.owner.toLowerCase()+'.github.io/'+c.repo+'/';let nota='';
+  try{
+   const pg=await fetch('https://api.github.com/repos/'+c.owner+'/'+c.repo+'/pages',{headers:ghHeaders(c.token)});
+   if(pg.status===200){try{const pj=await pg.json();if(pj.html_url)url=pj.html_url}catch(e){}}
+   else if(pg.status===404){
+    const cr=await fetch('https://api.github.com/repos/'+c.owner+'/'+c.repo+'/pages',{method:'POST',headers:Object.assign({'Content-Type':'application/json'},ghHeaders(c.token)),body:JSON.stringify({source:{branch:c.branch,path:'/'}})});
+    nota=(cr.status===201)?' · GitHub Pages activado automáticamente':' · Primera vez: activa Pages en el repo → Settings → Pages → Branch: '+c.branch;
+   }
+  }catch(e){}
+  S.publish={owner:c.owner,repo:c.repo,branch:c.branch,path:c.path};save();
+  const wrap=document.createElement('span');
+  wrap.append('✓ Publicado correctamente. Tu página: ');
+  const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';a.textContent=url;wrap.append(a);
+  wrap.append(' — puede tardar ~1 minuto en refrescarse'+nota);
+  ghSetStatus(wrap,'okst');toast('Publicado en GitHub ✓');
+ }catch(e){ghSetStatus('No se pudo conectar con GitHub. Comprueba tu conexión; si abres el editor como archivo local y falla, sírvelo con: python -m http.server','errst')}
+ ghBusy=false}
 /* ====== VISTA PREVIA ====== */
 const pv=$('#pv');
 let pvScroll=0;
